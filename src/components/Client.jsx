@@ -1,7 +1,9 @@
 import { trigger } from 'swr'
-import fetchJson from '../lib/fetchJson'
-import getClient from "../lib/getClient";
-// import FormEditClient from "../components/FormEditClient";
+import fetchJson from 'lib/fetchJson'
+import DashboardHeader from 'components/heading/clients'
+import FormEditClient from "components/form/formEditClient";
+import useSWR from 'swr'
+import apiFetchGet from 'lib/apiFetchGet'
 
 export const LoadingOrNotFound = (msg = "Not found") => {
   return (
@@ -12,8 +14,8 @@ export const LoadingOrNotFound = (msg = "Not found") => {
 }
 
 const Client = ({ user, id }) => {
-  const { client, mutateClient } = getClient(user, id)
-  console.log("Init component: <Client>")
+  const url = process.env.NEXT_PUBLIC_BASE_API_URL + `/clients/${user.license}/${id}`
+  const { data: client, mutate: mutateClient } = useSWR([url, user.token], apiFetchGet)
 
   if (!client) return LoadingOrNotFound("Loading...")
   if (client.detail) return LoadingOrNotFound("Tidak ketemu")
@@ -21,7 +23,7 @@ const Client = ({ user, id }) => {
   const submitHandler = async (values, {setSubmitting}) => {
     console.log(JSON.stringify(values, null, 2))
     console.log(values)
-    const url = process.env.NEXT_PUBLIC_BASE_API_URL + `/clients/${id}`
+    const url = process.env.NEXT_PUBLIC_BASE_API_URL + `/clients/${user.license}/${id}`
     const json = await fetchJson(url, {
       method: 'PUT',
       headers: {
@@ -37,15 +39,20 @@ const Client = ({ user, id }) => {
 
   return (
     <div>
-      <table>
-        <tbody>
-        <tr><td colSpan="2"><h3>{client.name}</h3></td></tr>
-        <tr><td>ID</td><td>{client._id}</td></tr>
-        <tr><td>Address</td><td>{client.address}</td></tr>
-        </tbody>
-      </table>
-      <br/>
-      {/* <FormEditClient model={client} submitHandler={submitHandler} /> */}
+      <DashboardHeader client={client} />
+
+      <div className="container max-w-5xl mx-auto px-6 py-6">
+        <table>
+          <tbody>
+          <tr><td colSpan="2"><h3>{client.name}</h3></td></tr>
+          <tr><td>ID</td><td>{client._id}</td></tr>
+          <tr><td>Address</td><td>{client.address}</td></tr>
+          </tbody>
+        </table>
+        <br />
+        <FormEditClient model={client} submitHandler={submitHandler} />
+      </div>
+
       <style jsx>{`
         table {
           border-collapse: collapse;

@@ -1,5 +1,7 @@
 import Link from 'next/link'
-import getClients from "../lib/getClients";
+import useSWR from 'swr'
+import apiFetchGet from 'lib/apiFetchGet'
+import DashboardHeader from 'components/heading/clients'
 
 export const Loading = (msg = "Loading...") => {
   return (
@@ -9,13 +11,17 @@ export const Loading = (msg = "Loading...") => {
   )
 }
 
-const Clients = ({ user }) => {
-  const { clients } = getClients(user)
+const Clients = ({ user, subtitle }) => {
+  const url = process.env.NEXT_PUBLIC_BASE_API_URL + `/clients/${user.license}`
+  const { data: clients, mutate: mutateClients } = useSWR([url, user.token], apiFetchGet)
 
   if (!clients) return Loading()
 
   return (
     <div>
+      <DashboardHeader client={false} subtitle={subtitle} />
+
+      <div className="container max-w-5xl mx-auto px-6 py-6">
       {clients.map((client) => (
         <div key={client._id}>
           <h3 className="font-normal">
@@ -27,6 +33,8 @@ const Clients = ({ user }) => {
           <pre>Address: {client.address}</pre>
         </div>
       ))}
+      </div>
+
       <style jsx>{`
         div {
           margin-bottom: 6px;

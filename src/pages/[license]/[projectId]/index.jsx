@@ -1,37 +1,20 @@
-// [license]/index.js
-
-// https://github.com/vercel/next.js/discussions/10960
-
-import Head from 'next/head'
-import DefaultErrorPage from 'next/error'
-import useUser from '../../../lib/useUser'
-import DashboardLayout from '../../../components/DashboardLayout'
-import Project from "../../../components/Project";
+import useUser from 'lib/useUser'
+import Layout from 'components/layout/project'
+import Project from "components/Project";
 import { useRouter } from 'next/router';
+import Unauthorized from 'components/unauthorized'
 
 const ProjectPage = () => {
   const { user } = useUser({ redirectTo: '/login' })
   const router = useRouter()
   const { projectId } = router.query
 
-  // This includes setting the noindex header because static files
-  // always return a status 200 but the rendered not found page should
-  // obviously not be indexed
-  if (!user || user.isLoggedIn === false) {
-    return (
-      <div>
-        <Head>
-          <meta name="robots" content="noindex" />
-        </Head>
-        <DefaultErrorPage statusCode={404} />
-      </div>
-    )
-  }
+  if (!user || user.isLoggedIn === false) return <Unauthorized/>
 
   return (
-    <DashboardLayout user={user} title="Your Projects" black="Your" blue="Projects">
+    <Layout user={user}>
       <Project user={user} id={projectId} />
-    </DashboardLayout>
+    </Layout>
   )
 }
 

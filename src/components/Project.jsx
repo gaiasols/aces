@@ -1,7 +1,9 @@
 import { trigger } from 'swr'
-import fetchJson from '../lib/fetchJson'
-import getProject from "../lib/getProject";
-import FormEditProject from "../components/FormEditProject";
+import fetchJson from 'lib/fetchJson'
+import DashboardHeader from 'components/heading/projects'
+import FormEditProject from "components/form/formEditProject";
+import useSWR from 'swr'
+import apiFetchGet from 'lib/apiFetchGet'
 
 export const LoadingOrNotFound = (msg = "Not found") => {
   return (
@@ -12,8 +14,10 @@ export const LoadingOrNotFound = (msg = "Not found") => {
 }
 
 const Project = ({ user, id }) => {
-  const { project, mutateProject } = getProject(user, id)
   console.log("Init component: <Project>")
+
+  const url = process.env.NEXT_PUBLIC_BASE_API_URL + `/projects/${id}`
+  const { data: project, mutate: mutateProject } = useSWR([url, user.token], apiFetchGet)
 
   if (!project) return LoadingOrNotFound("Loading...")
   if (project.detail) return LoadingOrNotFound("Tidak ketemu")
@@ -37,21 +41,24 @@ const Project = ({ user, id }) => {
 
   return (
     <div>
-      {/* <pre className="pre">{JSON.stringify(project, undefined, 2)}</pre> */}
-      <table>
-        <tbody>
-        <tr><td colSpan="2"><h3>{project.title}</h3></td></tr>
-        <tr><td>ID</td><td>{project._id}</td></tr>
-        <tr><td>Description</td><td>{project.description ? project.description : '-'}</td></tr>
-        <tr><td>Start date</td><td>{project.startDate}</td></tr>
-        <tr><td>End date</td><td>{project.endDate}</td></tr>
-        <tr><td>Status</td><td>{project.status}</td></tr>
-        <tr><td>Contact</td><td>{project.contact}</td></tr>
-        <tr><td>Admin</td><td>{project.managedBy}</td></tr>
-        </tbody>
-      </table>
-      <br/>
-      <FormEditProject model={project} submitHandler={submitHandler} />
+      <DashboardHeader project={project} />
+      <div className="container max-w-5xl mx-auto px-6 py-6">
+        <table>
+          <tbody>
+          <tr><td colSpan="2"><h3>{project.title}</h3></td></tr>
+          <tr><td>ID</td><td>{project._id}</td></tr>
+          <tr><td>Description</td><td>{project.description ? project.description : '-'}</td></tr>
+          <tr><td>Start date</td><td>{project.startDate}</td></tr>
+          <tr><td>End date</td><td>{project.endDate}</td></tr>
+          <tr><td>Status</td><td>{project.status}</td></tr>
+          <tr><td>Contact</td><td>{project.contact}</td></tr>
+          <tr><td>Admin</td><td>{project.managedBy}</td></tr>
+          </tbody>
+        </table>
+        <br/>
+        <FormEditProject model={project} submitHandler={submitHandler} />
+      </div>
+
       <style jsx>{`
         table {
           border-collapse: collapse;
